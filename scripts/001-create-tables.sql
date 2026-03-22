@@ -35,6 +35,11 @@ CREATE TABLE IF NOT EXISTS student_performance (
 CREATE TABLE IF NOT EXISTS players (
   id VARCHAR(20) PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
+  college VARCHAR(255),
+  department VARCHAR(255),
+  year_of_study VARCHAR(50),
+  contact_number VARCHAR(20),
+  email VARCHAR(255),
   score INTEGER DEFAULT 0,
   round1_score INTEGER DEFAULT 0,
   round2_score INTEGER DEFAULT 0,
