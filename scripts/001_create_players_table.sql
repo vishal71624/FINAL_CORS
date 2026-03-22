@@ -20,26 +20,3 @@ CREATE TABLE IF NOT EXISTS players (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- Create index for faster leaderboard queries
-CREATE INDEX IF NOT EXISTS idx_players_score ON players(score DESC);
-CREATE INDEX IF NOT EXISTS idx_players_disqualified ON players(is_disqualified);
-
--- Enable Row Level Security
-ALTER TABLE players ENABLE ROW LEVEL SECURITY;
-
--- Allow public read access (for leaderboard)
-CREATE POLICY "Allow public read access" ON players
-  FOR SELECT USING (true);
-
--- Allow public insert (for player registration by admin)
-CREATE POLICY "Allow public insert" ON players
-  FOR INSERT WITH CHECK (true);
-
--- Allow public update (for game progress)
-CREATE POLICY "Allow public update" ON players
-  FOR UPDATE USING (true);
-
--- Allow public delete (for admin to remove players)
-CREATE POLICY "Allow public delete" ON players
-  FOR DELETE USING (true);
