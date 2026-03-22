@@ -622,7 +622,7 @@ export function Round2Editor() {
                 const isCurrent = index === currentQuestionIndex
                 return (
                   <button
-                    key={`c-${q.id}-${index}`}
+                    key={q.id}
                     onClick={() => handleNavigate(index)}
                     className={`w-6 h-6 rounded flex items-center justify-center font-medium text-[10px] transition-all ${
                       isCurrent
@@ -785,7 +785,7 @@ export function Round2Editor() {
                         <div>
                           <p className="text-sm font-medium text-foreground mb-2">Input Data</p>
                           <div className="space-y-2">
-                            {(currentTestCase.tableData || currentChallenge?.baseTableData || []).map((table, idx) => (
+                            {currentTestCase.tableData.map((table, idx) => (
                               <DataTable key={idx} tableData={table} />
                             ))}
                           </div>
@@ -793,8 +793,8 @@ export function Round2Editor() {
                         <div>
                           <p className="text-sm font-medium text-foreground mb-2">Expected Output</p>
                           <OutputTable 
-                            columns={currentTestCase.expectedColumns || []}
-                            rows={currentTestCase.expectedOutput || []}
+                            columns={currentTestCase.expectedColumns}
+                            rows={currentTestCase.expectedOutput}
                             variant="expected"
                           />
                         </div>

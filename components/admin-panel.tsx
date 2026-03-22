@@ -66,8 +66,6 @@ export function AdminPanel() {
     enableRound2,
     disableRound2,
     loadPlayers,
-    loadRound1Questions,
-    loadRound2Challenges,
     addRound1Question,
     updateRound1Question,
     deleteRound1Question,
@@ -136,19 +134,15 @@ export function AdminPanel() {
     }
   }, [players])
 
-  // Load players and questions from database on mount
+  // Load players from database on mount
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
-      await Promise.all([
-        loadPlayers(),
-        loadRound1Questions(),
-        loadRound2Challenges()
-      ])
+      await loadPlayers()
       setIsLoading(false)
     }
     loadData()
-  }, [loadPlayers, loadRound1Questions, loadRound2Challenges])
+  }, [loadPlayers])
   
   // Update leaderboard when players change
   useEffect(() => {
@@ -263,7 +257,7 @@ export function AdminPanel() {
     setShowR1QuestionDialog(true)
   }
 
-  const handleSaveR1Question = async () => {
+  const handleSaveR1Question = () => {
     if (!r1Question.trim() || r1Options.some(o => !o.trim())) {
       alert('Please fill in the question and all options')
       return
@@ -280,9 +274,9 @@ export function AdminPanel() {
     }
 
     if (editingR1Question) {
-      await updateRound1Question(editingR1Question.id, questionData)
+      updateRound1Question(editingR1Question.id, questionData)
     } else {
-      await addRound1Question(questionData)
+      addRound1Question(questionData)
     }
 
     resetR1Form()
@@ -349,7 +343,7 @@ export function AdminPanel() {
     }]
   }
 
-  const handleSaveR2Challenge = async () => {
+  const handleSaveR2Challenge = () => {
     if (!r2Title.trim() || !r2Description.trim() || !r2CorrectQuery.trim()) {
       alert('Please fill in the title, description, and correct query')
       return
@@ -394,9 +388,9 @@ export function AdminPanel() {
     }
 
     if (editingR2Challenge) {
-      await updateRound2Challenge(editingR2Challenge.id, challengeData)
+      updateRound2Challenge(editingR2Challenge.id, challengeData)
     } else {
-      await addRound2Challenge(challengeData)
+      addRound2Challenge(challengeData)
     }
 
     resetR2Form()
@@ -929,7 +923,7 @@ export function AdminPanel() {
               <CardContent>
                 <div className="space-y-3">
                   {round1Questions.map((q, idx) => (
-                    <div key={`q-${idx}-${q.id}-${q.difficulty}`} className="p-4 rounded-lg border border-border/50 hover:border-border/80 transition-colors">
+                    <div key={q.id} className="p-4 rounded-lg border border-border/50 hover:border-border/80 transition-colors">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
@@ -1125,7 +1119,7 @@ export function AdminPanel() {
               <CardContent>
                 <div className="space-y-3">
                   {round2Challenges.map((c, idx) => (
-                    <div key={`ch-${c.id}-${c.difficulty}`} className="p-4 rounded-lg border border-border/50 hover:border-border/80 transition-colors">
+                    <div key={c.id} className="p-4 rounded-lg border border-border/50 hover:border-border/80 transition-colors">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
