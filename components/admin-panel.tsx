@@ -66,6 +66,8 @@ export function AdminPanel() {
     enableRound2,
     disableRound2,
     loadPlayers,
+    loadRound1Questions,
+    loadRound2Challenges,
     addRound1Question,
     updateRound1Question,
     deleteRound1Question,
@@ -134,15 +136,19 @@ export function AdminPanel() {
     }
   }, [players])
 
-  // Load players from database on mount
+  // Load players and questions from database on mount
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
-      await loadPlayers()
+      await Promise.all([
+        loadPlayers(),
+        loadRound1Questions(),
+        loadRound2Challenges()
+      ])
       setIsLoading(false)
     }
     loadData()
-  }, [loadPlayers])
+  }, [loadPlayers, loadRound1Questions, loadRound2Challenges])
   
   // Update leaderboard when players change
   useEffect(() => {
@@ -257,7 +263,7 @@ export function AdminPanel() {
     setShowR1QuestionDialog(true)
   }
 
-  const handleSaveR1Question = () => {
+  const handleSaveR1Question = async () => {
     if (!r1Question.trim() || r1Options.some(o => !o.trim())) {
       alert('Please fill in the question and all options')
       return
@@ -274,9 +280,9 @@ export function AdminPanel() {
     }
 
     if (editingR1Question) {
-      updateRound1Question(editingR1Question.id, questionData)
+      await updateRound1Question(editingR1Question.id, questionData)
     } else {
-      addRound1Question(questionData)
+      await addRound1Question(questionData)
     }
 
     resetR1Form()
@@ -343,7 +349,7 @@ export function AdminPanel() {
     }]
   }
 
-  const handleSaveR2Challenge = () => {
+  const handleSaveR2Challenge = async () => {
     if (!r2Title.trim() || !r2Description.trim() || !r2CorrectQuery.trim()) {
       alert('Please fill in the title, description, and correct query')
       return
@@ -388,9 +394,9 @@ export function AdminPanel() {
     }
 
     if (editingR2Challenge) {
-      updateRound2Challenge(editingR2Challenge.id, challengeData)
+      await updateRound2Challenge(editingR2Challenge.id, challengeData)
     } else {
-      addRound2Challenge(challengeData)
+      await addRound2Challenge(challengeData)
     }
 
     resetR2Form()

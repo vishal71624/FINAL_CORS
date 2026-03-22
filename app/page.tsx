@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useGameStore } from '@/lib/game-store'
 import { LandingPage } from '@/components/landing-page'
 import { LoginPage } from '@/components/login-page'
@@ -11,6 +12,14 @@ import { AdminPanel } from '@/components/admin-panel'
 
 export default function Home() {
   const currentView = useGameStore((s) => s.currentView)
+  const loadRound1Questions = useGameStore((s) => s.loadRound1Questions)
+  const loadRound2Challenges = useGameStore((s) => s.loadRound2Challenges)
+
+  // Load questions from database on app mount
+  useEffect(() => {
+    loadRound1Questions()
+    loadRound2Challenges()
+  }, [loadRound1Questions, loadRound2Challenges])
 
   switch (currentView) {
     case 'landing':
