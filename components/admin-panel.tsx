@@ -929,7 +929,7 @@ export function AdminPanel() {
               <CardContent>
                 <div className="space-y-3">
                   {round1Questions.map((q, idx) => (
-                    <div key={q.id} className="p-4 rounded-lg border border-border/50 hover:border-border/80 transition-colors">
+                    <div key={`q-${q.id}-${q.difficulty}`} className="p-4 rounded-lg border border-border/50 hover:border-border/80 transition-colors">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
@@ -1125,7 +1125,7 @@ export function AdminPanel() {
               <CardContent>
                 <div className="space-y-3">
                   {round2Challenges.map((c, idx) => (
-                    <div key={c.id} className="p-4 rounded-lg border border-border/50 hover:border-border/80 transition-colors">
+                    <div key={`ch-${c.id}-${c.difficulty}`} className="p-4 rounded-lg border border-border/50 hover:border-border/80 transition-colors">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
