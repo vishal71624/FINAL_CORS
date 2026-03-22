@@ -310,7 +310,7 @@ export function AdminPanel() {
     setR2Scenario(challenge.scenario)
     setR2Schema(challenge.schema)
     setR2Difficulty(challenge.difficulty)
-    setR2CorrectQuery('')
+    setR2CorrectQuery(challenge.correctSql || '')
     if (challenge.baseTableData.length > 0) {
       const table = challenge.baseTableData[0]
       setR2TableName(table.tableName)
@@ -356,16 +356,52 @@ export function AdminPanel() {
     }
 
     const tableData = parseTableData()
-    
-    // Create test cases from the correct query execution
+
+    // Run the correct SQL against the tableData to compute expected output
+    let computedOutput: (string | number | null)[][] = []
+    let computedColumns: string[] = []
+    try {
+      const { runTestCasesWithEngine } = await import('@/lib/sql-executor')
+      const results = await runTestCasesWithEngine(r2CorrectQuery, [{
+        id: 0,
+        name: 'compute',
+        tableData,
+        expectedOutput: [],
+        expectedColumns: [],
+        isHidden: false,
+        points: 0
+      }])
+      if (results[0]?.actualOutput) {
+        computedOutput = results[0].actualOutput
+      }
+      // Extract column names from the query result via PGlite directly
+      const { PGlite } = await import('@electric-sql/pglite')
+      const db = new PGlite()
+      for (const table of tableData) {
+        const cols = table.columns.map(c => `"${c.name}" ${c.type === 'INT' ? 'INTEGER' : c.type === 'DECIMAL' ? 'NUMERIC' : 'TEXT'}${c.isPrimaryKey ? ' PRIMARY KEY' : ''}`).join(', ')
+        await db.exec(`CREATE TABLE "${table.tableName}" (${cols})`)
+        for (const row of table.rows) {
+          const colNames = table.columns.map(c => `"${c.name}"`).join(', ')
+          const vals = row.map(v => v === null ? 'NULL' : typeof v === 'number' ? String(v) : `'${String(v).replace(/'/g, "''")}'`).join(', ')
+          await db.exec(`INSERT INTO "${table.tableName}" (${colNames}) VALUES (${vals})`)
+        }
+      }
+      const res = await db.query(r2CorrectQuery)
+      computedColumns = res.fields.map((f: { name: string }) => f.name)
+      await db.close()
+    } catch (e) {
+      console.error('Failed to compute expected output from correct SQL:', e)
+    }
+
+    // Create test cases with the computed expected output
     const testCases: TestCase[] = [
       {
         id: 1,
         name: 'Sample Test',
         description: 'Basic test case',
         tableData: tableData,
-        expectedOutput: [], // Would be populated by running the correct query
-        expectedColumns: [],
+        expectedOutput: computedOutput,
+        expectedColumns: computedColumns,
         isHidden: false,
         points: 5
       },
@@ -373,8 +409,8 @@ export function AdminPanel() {
         id: 2,
         name: 'Edge Case',
         tableData: tableData,
-        expectedOutput: [],
-        expectedColumns: [],
+        expectedOutput: computedOutput,
+        expectedColumns: computedColumns,
         isHidden: true,
         points: 10
       }
@@ -386,6 +422,7 @@ export function AdminPanel() {
       description: r2Description,
       scenario: r2Scenario,
       schema: r2Schema,
+      correctSql: r2CorrectQuery,
       baseTableData: tableData,
       testCases: testCases,
       expectedKeywords: r2CorrectQuery.toLowerCase().split(/\s+/).filter(w => ['select', 'from', 'where', 'join', 'group', 'order', 'having'].includes(w)),

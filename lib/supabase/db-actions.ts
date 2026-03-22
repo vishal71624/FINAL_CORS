@@ -135,6 +135,7 @@ interface DbRound2Challenge {
   description: string
   scenario: string | null
   schema: string | null
+  correct_sql: string | null
   base_table_data: TableData[]
   test_cases: TestCase[]
   expected_keywords: string[]
@@ -168,6 +169,7 @@ function dbToChallenge(row: DbRound2Challenge): SQLChallenge {
     description: row.description,
     scenario: row.scenario || '',
     schema: row.schema || '',
+    correctSql: row.correct_sql || '',
     baseTableData: (row.base_table_data || []).map(normalizeTableData),
     testCases: (row.test_cases || []).map(normalizeTestCase),
     expectedKeywords: row.expected_keywords || [],
@@ -183,6 +185,7 @@ function challengeToDb(c: Omit<SQLChallenge, 'id'>) {
     description: c.description,
     scenario: c.scenario || null,
     schema: c.schema || null,
+    correct_sql: c.correctSql || null,
     base_table_data: c.baseTableData,
     test_cases: c.testCases,
     expected_keywords: c.expectedKeywords,
