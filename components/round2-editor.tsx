@@ -35,16 +35,18 @@ import {
 
 // Table Display Component
 function DataTable({ tableData }: { tableData: TableData }) {
+  const columns = tableData?.columns || []
+  const rows = tableData?.rows || []
   return (
     <div className="rounded-lg border border-border/50 overflow-hidden">
       <div className="bg-accent/10 px-3 py-2 border-b border-border/50">
-        <span className="font-mono text-sm font-medium text-accent">{tableData.tableName}</span>
+        <span className="font-mono text-sm font-medium text-accent">{tableData?.tableName}</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-muted/30">
-              {tableData.columns.map((col, idx) => (
+              {columns.map((col, idx) => (
                 <th key={idx} className="px-3 py-2 text-left font-medium text-foreground border-b border-border/30">
                   <div className="flex items-center gap-1">
                     <span>{col.name}</span>
@@ -57,9 +59,9 @@ function DataTable({ tableData }: { tableData: TableData }) {
             </tr>
           </thead>
           <tbody>
-            {tableData.rows.map((row, rowIdx) => (
+            {rows.map((row, rowIdx) => (
               <tr key={rowIdx} className="hover:bg-muted/20 transition-colors">
-                {row.map((cell, cellIdx) => (
+                {(row || []).map((cell, cellIdx) => (
                   <td key={cellIdx} className="px-3 py-1.5 border-b border-border/20 font-mono text-muted-foreground">
                     {cell === null ? <span className="italic text-muted-foreground/50">NULL</span> : String(cell)}
                   </td>
@@ -79,6 +81,8 @@ function OutputTable({ columns, rows, variant = 'default' }: {
   rows: (string | number | null)[][]
   variant?: 'default' | 'expected' | 'actual' | 'correct' | 'wrong'
 }) {
+  const safeColumns = columns || []
+  const safeRows = rows || []
   const borderColors = {
     default: 'border-border/50',
     expected: 'border-accent/50',
@@ -93,7 +97,7 @@ function OutputTable({ columns, rows, variant = 'default' }: {
         <table className="w-full text-xs">
           <thead className="sticky top-0">
             <tr className="bg-muted/50">
-              {columns.map((col, idx) => (
+              {safeColumns.map((col, idx) => (
                 <th key={idx} className="px-3 py-2 text-left font-medium text-foreground border-b border-border/30">
                   {col}
                 </th>
@@ -101,16 +105,16 @@ function OutputTable({ columns, rows, variant = 'default' }: {
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
+            {safeRows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-4 text-center text-muted-foreground italic">
+                <td colSpan={safeColumns.length} className="px-3 py-4 text-center text-muted-foreground italic">
                   No results
                 </td>
               </tr>
             ) : (
-              rows.map((row, rowIdx) => (
+              safeRows.map((row, rowIdx) => (
                 <tr key={rowIdx} className="hover:bg-muted/20 transition-colors">
-                  {row.map((cell, cellIdx) => (
+                  {(row || []).map((cell, cellIdx) => (
                     <td key={cellIdx} className="px-3 py-1.5 border-b border-border/20 font-mono text-muted-foreground">
                       {cell === null ? <span className="italic text-muted-foreground/50">NULL</span> : String(cell)}
                     </td>
@@ -215,9 +219,10 @@ export function Round2Editor() {
     totalQuestions: number
   } | null>(null)
 
-  const currentChallenge = round2Challenges[currentQuestionIndex]
+  const safeChallenges = round2Challenges || []
+  const currentChallenge = safeChallenges[currentQuestionIndex]
   const currentAnswer = answers[currentQuestionIndex] || { code: '', testResults: [], submitted: false }
-  const progress = ((currentQuestionIndex + 1) / round2Challenges.length) * 100
+  const progress = safeChallenges.length > 0 ? ((currentQuestionIndex + 1) / safeChallenges.length) * 100 : 0
   
   // Count answered questions
   const answeredCount = Object.values(answers).filter(a => a.code.trim()).length
@@ -310,7 +315,7 @@ export function Round2Editor() {
   }
 
   const handleNavigate = (index: number) => {
-    if (index >= 0 && index < round2Challenges.length) {
+    if (index >= 0 && index < safeChallenges.length) {
       setActiveTestCase(0)
       setActiveTab('testcases')
       goToQuestion(index)
@@ -322,8 +327,8 @@ export function Round2Editor() {
     let totalScore = 0
     let questionsAttempted = 0
     
-    for (let idx = 0; idx < round2Challenges.length; idx++) {
-      const challenge = round2Challenges[idx]
+    for (let idx = 0; idx < safeChallenges.length; idx++) {
+      const challenge = safeChallenges[idx]
       const answer = answers[idx]
       if (answer?.code.trim()) {
         questionsAttempted++
@@ -365,7 +370,7 @@ export function Round2Editor() {
     setFinalResults({
       totalScore,
       questionsAttempted,
-      totalQuestions: round2Challenges.length
+      totalQuestions: safeChallenges.length
     })
     
     if (document.fullscreenElement) {
@@ -388,9 +393,10 @@ export function Round2Editor() {
     }
   }
 
-  const visibleTestCases = currentChallenge?.testCases.filter(tc => !tc.isHidden) || []
-  const hiddenTestCases = currentChallenge?.testCases.filter(tc => tc.isHidden) || []
-  const currentTestCase = currentChallenge?.testCases[activeTestCase]
+  const safeTestCases = currentChallenge?.testCases || []
+  const visibleTestCases = safeTestCases.filter(tc => !tc.isHidden)
+  const hiddenTestCases = safeTestCases.filter(tc => tc.isHidden)
+  const currentTestCase = safeTestCases[activeTestCase]
 
   if (!currentChallenge) {
     return (
@@ -525,10 +531,10 @@ export function Round2Editor() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center text-muted-foreground">
-              <p>You have answered {answeredCount} of {round2Challenges.length} questions.</p>
-              {answeredCount < round2Challenges.length && (
+              <p>You have answered {answeredCount} of {safeChallenges.length} questions.</p>
+              {answeredCount < safeChallenges.length && (
                 <p className="text-neon-orange mt-2">
-                  {round2Challenges.length - answeredCount} questions are unanswered!
+                  {safeChallenges.length - answeredCount} questions are unanswered!
                 </p>
               )}
               <p className="text-sm mt-4 text-primary">
@@ -565,7 +571,7 @@ export function Round2Editor() {
             <div className="flex items-center gap-2">
               <Target className="w-6 h-6 text-accent" />
               <div>
-                <p className="font-semibold text-foreground">Challenge {currentQuestionIndex + 1}/{round2Challenges.length}</p>
+                <p className="font-semibold text-foreground">Challenge {currentQuestionIndex + 1}/{safeChallenges.length}</p>
                 <p className="text-xs text-muted-foreground">{currentChallenge.title}</p>
               </div>
             </div>
@@ -576,14 +582,14 @@ export function Round2Editor() {
             
             <Badge className="bg-muted text-muted-foreground border-0">
               <FlaskConical className="w-3 h-3 mr-1" />
-              {currentChallenge.testCases.length} tests
+              {safeTestCases.length} tests
             </Badge>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="text-right mr-2">
               <p className="text-xs text-muted-foreground">Answered</p>
-              <p className="font-bold text-primary">{answeredCount}/{round2Challenges.length}</p>
+              <p className="font-bold text-primary">{answeredCount}/{safeChallenges.length}</p>
             </div>
 
             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
@@ -614,9 +620,9 @@ export function Round2Editor() {
         <div className="w-[420px] shrink-0 flex flex-col border-r border-border/50 overflow-hidden bg-card/30">
           {/* Question Navigator */}
           <div className="p-3 border-b border-border/50 bg-card/50">
-            <p className="text-xs text-muted-foreground font-medium mb-2">Questions ({answeredCount}/{round2Challenges.length})</p>
+            <p className="text-xs text-muted-foreground font-medium mb-2">Questions ({answeredCount}/{safeChallenges.length})</p>
             <div className="grid grid-cols-10 gap-1">
-              {round2Challenges.map((q, index) => {
+              {safeChallenges.map((q, index) => {
                 const hasAnswer = answers[index]?.code.trim()
                 const hasResults = answers[index]?.testResults.length > 0
                 const isCurrent = index === currentQuestionIndex
@@ -680,7 +686,7 @@ export function Round2Editor() {
                 <Table className="w-4 h-4 text-accent" />
                 <span className="text-sm font-medium text-foreground">Sample Data</span>
               </div>
-              {currentChallenge.baseTableData.map((table, idx) => (
+              {(currentChallenge.baseTableData || []).map((table, idx) => (
                 <DataTable key={idx} tableData={table} />
               ))}
             </div>
@@ -752,8 +758,8 @@ export function Round2Editor() {
                         key={tc.id}
                         testCase={tc}
                         result={currentAnswer.testResults.find(r => r.testCaseId === tc.id)}
-                        isActive={activeTestCase === currentChallenge.testCases.indexOf(tc)}
-                        onClick={() => setActiveTestCase(currentChallenge.testCases.indexOf(tc))}
+                        isActive={activeTestCase === safeTestCases.indexOf(tc)}
+                        onClick={() => setActiveTestCase(safeTestCases.indexOf(tc))}
                         showDetails={true}
                       />
                     ))}
@@ -769,8 +775,8 @@ export function Round2Editor() {
                             key={tc.id}
                             testCase={tc}
                             result={currentAnswer.testResults.find(r => r.testCaseId === tc.id)}
-                            isActive={activeTestCase === currentChallenge.testCases.indexOf(tc)}
-                            onClick={() => setActiveTestCase(currentChallenge.testCases.indexOf(tc))}
+                            isActive={activeTestCase === safeTestCases.indexOf(tc)}
+                            onClick={() => setActiveTestCase(safeTestCases.indexOf(tc))}
                             showDetails={false}
                           />
                         ))}
@@ -785,7 +791,7 @@ export function Round2Editor() {
                         <div>
                           <p className="text-sm font-medium text-foreground mb-2">Input Data</p>
                           <div className="space-y-2">
-                            {currentTestCase.tableData.map((table, idx) => (
+                            {(currentTestCase?.tableData ?? []).map((table, idx) => (
                               <DataTable key={idx} tableData={table} />
                             ))}
                           </div>
@@ -918,7 +924,7 @@ export function Round2Editor() {
           </Button>
 
           <div className="flex items-center gap-2">
-            {currentQuestionIndex < round2Challenges.length - 1 ? (
+            {currentQuestionIndex < safeChallenges.length - 1 ? (
               <Button
                 onClick={() => handleNavigate(currentQuestionIndex + 1)}
                 className="bg-primary text-primary-foreground hover:bg-primary/90"

@@ -138,6 +138,23 @@ interface DbRound2Challenge {
   is_active: boolean
 }
 
+function normalizeTableData(td: TableData): TableData {
+  return {
+    tableName: td?.tableName || '',
+    columns: td?.columns || [],
+    rows: td?.rows || [],
+  }
+}
+
+function normalizeTestCase(tc: TestCase): TestCase {
+  return {
+    ...tc,
+    tableData: (tc?.tableData || []).map(normalizeTableData),
+    expectedOutput: tc?.expectedOutput || [],
+    expectedColumns: tc?.expectedColumns || [],
+  }
+}
+
 function dbToChallenge(row: DbRound2Challenge): SQLChallenge {
   return {
     id: row.id,
@@ -146,8 +163,8 @@ function dbToChallenge(row: DbRound2Challenge): SQLChallenge {
     description: row.description,
     scenario: row.scenario || '',
     schema: row.schema || '',
-    baseTableData: row.base_table_data || [],
-    testCases: row.test_cases || [],
+    baseTableData: (row.base_table_data || []).map(normalizeTableData),
+    testCases: (row.test_cases || []).map(normalizeTestCase),
     expectedKeywords: row.expected_keywords || [],
     totalPoints: row.total_points,
     timeLimit: row.time_limit,
