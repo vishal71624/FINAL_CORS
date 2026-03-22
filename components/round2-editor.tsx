@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useGameStore, TableData, TestCase, TestCaseResult } from '@/lib/game-store'
+import { runTestCasesWithEngine } from '@/lib/sql-executor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -292,10 +293,9 @@ export function Round2Editor() {
     if (!currentAnswer.code.trim() || !currentChallenge) return
     
     setIsRunning(true)
-    await new Promise(resolve => setTimeout(resolve, 400))
     
-    // Run test cases
-    const results = runTestCases(currentAnswer.code)
+    // Run test cases using PGlite engine
+    const results = await runTestCasesWithEngine(currentAnswer.code, currentChallenge.testCases)
     
     setAnswers(prev => ({
       ...prev,
@@ -322,16 +322,41 @@ export function Round2Editor() {
     let totalScore = 0
     let questionsAttempted = 0
     
-    round2Challenges.forEach((challenge, idx) => {
+    for (let idx = 0; idx < round2Challenges.length; idx++) {
+      const challenge = round2Challenges[idx]
       const answer = answers[idx]
       if (answer?.code.trim()) {
         questionsAttempted++
-        // Navigate to each question and submit
-        goToQuestion(idx)
-        const result = submitRound2Answer(answer.code)
-        totalScore += result.pointsEarned
+        // Run test cases using PGlite engine
+        const testResults = await runTestCasesWithEngine(answer.code, challenge.testCases)
+        
+        // Calculate points based on test cases passed
+        let pointsEarned = 0
+        challenge.testCases.forEach((tc, tcIdx) => {
+          if (testResults[tcIdx]?.passed) {
+            pointsEarned += tc.points
+          }
+        })
+        
+        totalScore += pointsEarned
       }
-    })
+    }
+    
+    // Update player score directly in store before finishing round 2
+    // submitRound2Answer is deprecated since runTestCases is stubbed
+    if (currentPlayer && totalScore > 0) {
+      useGameStore.setState(s => {
+        const updatedPlayer = {
+          ...s.currentPlayer!,
+          round2Score: s.currentPlayer!.round2Score + totalScore,
+          score: s.currentPlayer!.score + totalScore
+        }
+        return {
+          currentPlayer: updatedPlayer,
+          players: s.players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p)
+        }
+      })
+    }
     
     // Mark round 2 as completed and sync to database
     // This prevents the user from re-attending round 2
