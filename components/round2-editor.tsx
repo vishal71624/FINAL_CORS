@@ -785,7 +785,7 @@ export function Round2Editor() {
                         <div>
                           <p className="text-sm font-medium text-foreground mb-2">Input Data</p>
                           <div className="space-y-2">
-                            {currentTestCase.tableData.map((table, idx) => (
+                            {(currentTestCase.tableData || currentChallenge?.baseTableData || []).map((table, idx) => (
                               <DataTable key={idx} tableData={table} />
                             ))}
                           </div>
@@ -793,8 +793,8 @@ export function Round2Editor() {
                         <div>
                           <p className="text-sm font-medium text-foreground mb-2">Expected Output</p>
                           <OutputTable 
-                            columns={currentTestCase.expectedColumns}
-                            rows={currentTestCase.expectedOutput}
+                            columns={currentTestCase.expectedColumns || []}
+                            rows={currentTestCase.expectedOutput || []}
                             variant="expected"
                           />
                         </div>
