@@ -622,7 +622,7 @@ export function Round2Editor() {
                 const isCurrent = index === currentQuestionIndex
                 return (
                   <button
-                    key={q.id}
+                    key={`c-${q.id}-${index}`}
                     onClick={() => handleNavigate(index)}
                     className={`w-6 h-6 rounded flex items-center justify-center font-medium text-[10px] transition-all ${
                       isCurrent
