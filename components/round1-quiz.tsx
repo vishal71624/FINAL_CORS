@@ -262,7 +262,7 @@ export function Round1Quiz() {
                   const isCurrent = index === currentQuestionIndex
                   return (
                     <button
-                      key={q.id}
+                      key={`q-${q.id}-${index}`}
                       onClick={() => goToQuestion(index)}
                       className={`w-6 h-6 rounded flex items-center justify-center font-medium text-[10px] transition-all ${
                         isCurrent

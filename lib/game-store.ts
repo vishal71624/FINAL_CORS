@@ -9,6 +9,16 @@ import {
   disableRound2ForPlayer,
   resetAllPlayers,
   getLeaderboard as dbGetLeaderboard,
+  // Question management
+  fetchRound1Questions,
+  createRound1Question as dbCreateRound1Question,
+  updateRound1Question as dbUpdateRound1Question,
+  deleteRound1Question as dbDeleteRound1Question,
+  // Challenge management
+  fetchRound2Challenges,
+  createRound2Challenge as dbCreateRound2Challenge,
+  updateRound2Challenge as dbUpdateRound2Challenge,
+  deleteRound2Challenge as dbDeleteRound2Challenge,
 } from './supabase/db-actions'
 
 // Fisher-Yates shuffle algorithm for randomizing arrays
@@ -173,14 +183,16 @@ interface GameState {
   loadPlayers: () => Promise<void>
   syncPlayerToDb: (player: Player) => Promise<void>
   // Question management
-  addRound1Question: (question: Omit<Question, 'id'>) => void
-  updateRound1Question: (id: number, question: Partial<Question>) => void
-  deleteRound1Question: (id: number) => void
+  loadRound1Questions: () => Promise<void>
+  addRound1Question: (question: Omit<Question, 'id'>) => Promise<void>
+  updateRound1Question: (id: number, question: Partial<Question>) => Promise<void>
+  deleteRound1Question: (id: number) => Promise<void>
   // Round 2 table and challenge management
+  loadRound2Challenges: () => Promise<void>
   updateRound2Tables: (tables: TableData[]) => void
-  addRound2Challenge: (challenge: Omit<SQLChallenge, 'id'>) => void
-  updateRound2Challenge: (id: number, challenge: Partial<SQLChallenge>) => void
-  deleteRound2Challenge: (id: number) => void
+  addRound2Challenge: (challenge: Omit<SQLChallenge, 'id'>) => Promise<void>
+  updateRound2Challenge: (id: number, challenge: Partial<SQLChallenge>) => Promise<void>
+  deleteRound2Challenge: (id: number) => Promise<void>
 }
 
 // Round 1 Questions - 30 total: 15 Easy, 10 Medium, 5 Hard
@@ -2212,25 +2224,50 @@ runTestCases: (_code) => {
     await dbUpdatePlayer(player)
   },
 
-  // Question management functions
-  addRound1Question: (question) => {
-    const maxId = Math.max(...get().round1Questions.map(q => q.id), 0)
-    const newQuestion = { ...question, id: maxId + 1 }
-    set(s => ({ round1Questions: [...s.round1Questions, newQuestion] }))
+  // Load questions from database
+  loadRound1Questions: async () => {
+    const dbQuestions = await fetchRound1Questions()
+    if (dbQuestions.length > 0) {
+      set({ round1Questions: dbQuestions })
+    }
+    // If no questions in DB, keep the default hardcoded ones
   },
 
-  updateRound1Question: (id, question) => {
-    set(s => ({
-      round1Questions: s.round1Questions.map(q => 
-        q.id === id ? { ...q, ...question } : q
-      )
-    }))
+  // Question management functions - now using database
+  addRound1Question: async (question) => {
+    const newQuestion = await dbCreateRound1Question(question)
+    if (newQuestion) {
+      set(s => ({ round1Questions: [...s.round1Questions, newQuestion] }))
+    }
   },
 
-  deleteRound1Question: (id) => {
-    set(s => ({
-      round1Questions: s.round1Questions.filter(q => q.id !== id)
-    }))
+  updateRound1Question: async (id, question) => {
+    const updated = await dbUpdateRound1Question(id, question)
+    if (updated) {
+      set(s => ({
+        round1Questions: s.round1Questions.map(q => 
+          q.id === id ? updated : q
+        )
+      }))
+    }
+  },
+
+  deleteRound1Question: async (id) => {
+    const success = await dbDeleteRound1Question(id)
+    if (success) {
+      set(s => ({
+        round1Questions: s.round1Questions.filter(q => q.id !== id)
+      }))
+    }
+  },
+
+  // Load challenges from database
+  loadRound2Challenges: async () => {
+    const dbChallenges = await fetchRound2Challenges()
+    if (dbChallenges.length > 0) {
+      set({ round2Challenges: dbChallenges })
+    }
+    // If no challenges in DB, keep the default hardcoded ones
   },
 
   // Round 2 management
@@ -2244,23 +2281,30 @@ runTestCases: (_code) => {
     }))
   },
 
-  addRound2Challenge: (challenge) => {
-    const maxId = Math.max(...get().round2Challenges.map(c => c.id), 0)
-    const newChallenge = { ...challenge, id: maxId + 1 }
-    set(s => ({ round2Challenges: [...s.round2Challenges, newChallenge] }))
+  addRound2Challenge: async (challenge) => {
+    const newChallenge = await dbCreateRound2Challenge(challenge)
+    if (newChallenge) {
+      set(s => ({ round2Challenges: [...s.round2Challenges, newChallenge] }))
+    }
   },
 
-  updateRound2Challenge: (id, challenge) => {
-    set(s => ({
-      round2Challenges: s.round2Challenges.map(c => 
-        c.id === id ? { ...c, ...challenge } : c
-      )
-    }))
+  updateRound2Challenge: async (id, challenge) => {
+    const updated = await dbUpdateRound2Challenge(id, challenge)
+    if (updated) {
+      set(s => ({
+        round2Challenges: s.round2Challenges.map(c => 
+          c.id === id ? updated : c
+        )
+      }))
+    }
   },
 
-  deleteRound2Challenge: (id) => {
-    set(s => ({
-      round2Challenges: s.round2Challenges.filter(c => c.id !== id)
-    }))
+  deleteRound2Challenge: async (id) => {
+    const success = await dbDeleteRound2Challenge(id)
+    if (success) {
+      set(s => ({
+        round2Challenges: s.round2Challenges.filter(c => c.id !== id)
+      }))
+    }
   }
 }))
