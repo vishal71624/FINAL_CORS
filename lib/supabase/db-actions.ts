@@ -146,17 +146,17 @@ interface DbRound2Challenge {
 function normalizeTableData(td: TableData): TableData {
   return {
     tableName: td?.tableName || '',
-    columns: td?.columns || [],
-    rows: td?.rows || [],
+    columns: Array.isArray(td?.columns) ? td.columns : [],
+    rows: Array.isArray(td?.rows) ? td.rows : [],
   }
 }
 
 function normalizeTestCase(tc: TestCase): TestCase {
   return {
     ...tc,
-    tableData: (tc?.tableData || []).map(normalizeTableData),
-    expectedOutput: tc?.expectedOutput || [],
-    expectedColumns: tc?.expectedColumns || [],
+    tableData: Array.isArray(tc?.tableData) ? tc.tableData.map(normalizeTableData) : [],
+    expectedOutput: Array.isArray(tc?.expectedOutput) ? tc.expectedOutput : [],
+    expectedColumns: Array.isArray(tc?.expectedColumns) ? tc.expectedColumns : [],
   }
 }
 

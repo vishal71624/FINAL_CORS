@@ -35,8 +35,8 @@ import {
 
 // Table Display Component
 function DataTable({ tableData }: { tableData: TableData }) {
-  const columns = tableData?.columns || []
-  const rows = tableData?.rows || []
+  const columns = Array.isArray(tableData?.columns) ? tableData.columns : []
+  const rows = Array.isArray(tableData?.rows) ? tableData.rows : []
   return (
     <div className="rounded-lg border border-border/50 overflow-hidden">
       <div className="bg-accent/10 px-3 py-2 border-b border-border/50">
@@ -81,8 +81,8 @@ function OutputTable({ columns, rows, variant = 'default' }: {
   rows: (string | number | null)[][]
   variant?: 'default' | 'expected' | 'actual' | 'correct' | 'wrong'
 }) {
-  const safeColumns = columns || []
-  const safeRows = rows || []
+  const safeColumns = Array.isArray(columns) ? columns : []
+  const safeRows = Array.isArray(rows) ? rows : []
   const borderColors = {
     default: 'border-border/50',
     expected: 'border-accent/50',
@@ -219,7 +219,7 @@ export function Round2Editor() {
     totalQuestions: number
   } | null>(null)
 
-  const safeChallenges = round2Challenges || []
+  const safeChallenges = Array.isArray(round2Challenges) ? round2Challenges : []
   const currentChallenge = safeChallenges[currentQuestionIndex]
   const currentAnswer = answers[currentQuestionIndex] || { code: '', testResults: [], submitted: false }
   const progress = safeChallenges.length > 0 ? ((currentQuestionIndex + 1) / safeChallenges.length) * 100 : 0
@@ -393,7 +393,7 @@ export function Round2Editor() {
     }
   }
 
-  const safeTestCases = currentChallenge?.testCases || []
+  const safeTestCases = Array.isArray(currentChallenge?.testCases) ? currentChallenge.testCases : []
   const visibleTestCases = safeTestCases.filter(tc => !tc.isHidden)
   const hiddenTestCases = safeTestCases.filter(tc => tc.isHidden)
   const currentTestCase = safeTestCases[activeTestCase]
@@ -686,7 +686,7 @@ export function Round2Editor() {
                 <Table className="w-4 h-4 text-accent" />
                 <span className="text-sm font-medium text-foreground">Sample Data</span>
               </div>
-              {(currentChallenge.baseTableData || []).map((table, idx) => (
+              {(Array.isArray(currentChallenge.baseTableData) ? currentChallenge.baseTableData : []).map((table, idx) => (
                 <DataTable key={idx} tableData={table} />
               ))}
             </div>
@@ -791,7 +791,7 @@ export function Round2Editor() {
                         <div>
                           <p className="text-sm font-medium text-foreground mb-2">Input Data</p>
                           <div className="space-y-2">
-                            {(currentTestCase?.tableData ?? []).map((table, idx) => (
+                            {(Array.isArray(currentTestCase?.tableData) ? currentTestCase.tableData : []).map((table, idx) => (
                               <DataTable key={idx} tableData={table} />
                             ))}
                           </div>
@@ -799,8 +799,8 @@ export function Round2Editor() {
                         <div>
                           <p className="text-sm font-medium text-foreground mb-2">Expected Output</p>
                           <OutputTable 
-                            columns={currentTestCase.expectedColumns}
-                            rows={currentTestCase.expectedOutput}
+                            columns={Array.isArray(currentTestCase.expectedColumns) ? currentTestCase.expectedColumns : []}
+                            rows={Array.isArray(currentTestCase.expectedOutput) ? currentTestCase.expectedOutput : []}
                             variant="expected"
                           />
                         </div>
