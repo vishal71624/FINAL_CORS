@@ -135,7 +135,6 @@ interface DbRound2Challenge {
   description: string
   scenario: string | null
   schema: string | null
-  correct_sql: string | null
   base_table_data: TableData[]
   test_cases: TestCase[]
   expected_keywords: string[]
@@ -147,17 +146,17 @@ interface DbRound2Challenge {
 function normalizeTableData(td: TableData): TableData {
   return {
     tableName: td?.tableName || '',
-    columns: Array.isArray(td?.columns) ? td.columns : [],
-    rows: Array.isArray(td?.rows) ? td.rows : [],
+    columns: td?.columns || [],
+    rows: td?.rows || [],
   }
 }
 
 function normalizeTestCase(tc: TestCase): TestCase {
   return {
     ...tc,
-    tableData: Array.isArray(tc?.tableData) ? tc.tableData.map(normalizeTableData) : [],
-    expectedOutput: Array.isArray(tc?.expectedOutput) ? tc.expectedOutput : [],
-    expectedColumns: Array.isArray(tc?.expectedColumns) ? tc.expectedColumns : [],
+    tableData: (tc?.tableData || []).map(normalizeTableData),
+    expectedOutput: tc?.expectedOutput || [],
+    expectedColumns: tc?.expectedColumns || [],
   }
 }
 
@@ -169,7 +168,6 @@ function dbToChallenge(row: DbRound2Challenge): SQLChallenge {
     description: row.description,
     scenario: row.scenario || '',
     schema: row.schema || '',
-    correctSql: row.correct_sql || '',
     baseTableData: (row.base_table_data || []).map(normalizeTableData),
     testCases: (row.test_cases || []).map(normalizeTestCase),
     expectedKeywords: row.expected_keywords || [],
@@ -185,7 +183,6 @@ function challengeToDb(c: Omit<SQLChallenge, 'id'>) {
     description: c.description,
     scenario: c.scenario || null,
     schema: c.schema || null,
-    correct_sql: c.correctSql || null,
     base_table_data: c.baseTableData,
     test_cases: c.testCases,
     expected_keywords: c.expectedKeywords,

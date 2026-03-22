@@ -97,7 +97,6 @@ export interface SQLChallenge {
   description: string
   scenario: string
   schema: string
-  correctSql: string // The correct SQL query used to compute expected output
   baseTableData: TableData[] // Base table shown to user
   testCases: TestCase[]
   expectedKeywords: string[]
@@ -641,7 +640,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'Write a query to find all employees in the "Engineering" department. Return all columns.',
     scenario: 'Techno Corp needs a list of all engineers for an important meeting.',
     schema: 'employees (emp_id, name, department, salary)',
-    correctSql: "SELECT * FROM employees WHERE department = 'Engineering'",
     baseTableData: [{
       tableName: 'employees',
       columns: [
@@ -751,7 +749,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'Write a query to count the total number of orders.',
     scenario: 'QuickMart needs a count of all orders for their monthly report.',
     schema: 'orders (order_id, customer_id, order_date, total_amount)',
-    correctSql: 'SELECT COUNT(*) AS count FROM orders',
     baseTableData: [{
       tableName: 'orders',
       columns: [
@@ -847,7 +844,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'Find all customers who have spent more than Rs.10000 in total. Return all columns.',
     scenario: 'Marketing wants to identify premium customers for a loyalty program.',
     schema: 'customers (customer_id, name, email, total_spent)',
-    correctSql: 'SELECT * FROM customers WHERE total_spent > 10000',
     baseTableData: [{
       tableName: 'customers',
       columns: [
@@ -955,7 +951,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'List all products sorted by price from lowest to highest. Return all columns.',
     scenario: 'A budget-conscious shopper wants to see products starting from cheapest.',
     schema: 'products (product_id, name, category, price)',
-    correctSql: 'SELECT * FROM products ORDER BY price ASC',
     baseTableData: [{
       tableName: 'products',
       columns: [
@@ -1042,7 +1037,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'List all unique departments in the company. Return only the department column.',
     scenario: 'The new HR intern needs to know all different departments.',
     schema: 'employees (emp_id, name, department, salary)',
-    correctSql: 'SELECT DISTINCT department FROM employees',
     baseTableData: [{
       tableName: 'employees',
       columns: [
@@ -1123,7 +1117,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'Calculate the average salary for each department. Return department name and average salary.',
     scenario: 'Finance team needs average salaries by department for budget.',
     schema: 'employees (emp_id, name, department, salary)',
-    correctSql: 'SELECT department, AVG(salary) AS avg_salary FROM employees GROUP BY department',
     baseTableData: [{
       tableName: 'employees',
       columns: [
@@ -1236,7 +1229,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'Show customer names along with their order IDs using JOIN. Return name and order_id.',
     scenario: 'Support team needs to see which orders belong to which customers.',
     schema: 'customers (customer_id, name) | orders (order_id, customer_id, total_amount)',
-    correctSql: 'SELECT c.name, o.order_id FROM customers c JOIN orders o ON c.customer_id = o.customer_id',
     baseTableData: [
       {
         tableName: 'customers',
@@ -1394,7 +1386,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'Find departments that have more than 2 employees. Return department and employee count.',
     scenario: 'Management wants to identify large departments.',
     schema: 'employees (emp_id, name, department, salary)',
-    correctSql: 'SELECT department, COUNT(*) AS count FROM employees GROUP BY department HAVING COUNT(*) > 2',
     baseTableData: [{
       tableName: 'employees',
       columns: [
@@ -1506,7 +1497,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'Find the second highest salary in the company. Return just the salary value.',
     scenario: 'Payroll needs to find the second highest earner for an audit.',
     schema: 'employees (emp_id, name, department, salary)',
-    correctSql: 'SELECT MAX(salary) AS salary FROM employees WHERE salary < (SELECT MAX(salary) FROM employees)',
     baseTableData: [{
       tableName: 'employees',
       columns: [
@@ -1628,7 +1618,6 @@ const round2Challenges: SQLChallenge[] = [
     description: 'Find customers who have never placed an order. Return customer_id and name.',
     scenario: 'Marketing wants to reach out to customers with no purchases.',
     schema: 'customers (customer_id, name) | orders (order_id, customer_id)',
-    correctSql: 'SELECT customer_id, name FROM customers WHERE customer_id NOT IN (SELECT customer_id FROM orders)',
     baseTableData: [
       {
         tableName: 'customers',
