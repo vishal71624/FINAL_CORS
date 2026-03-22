@@ -44,6 +44,7 @@ function questionToDb(q: Omit<Question, 'id'>) {
 }
 
 export async function fetchRound1Questions(): Promise<Question[]> {
+  try {
   const supabase = await createClient()
   
   const { data, error } = await supabase
@@ -59,6 +60,10 @@ export async function fetchRound1Questions(): Promise<Question[]> {
   }
 
   return (data || []).map(dbToQuestion)
+  } catch (e) {
+    console.error("fetchRound1Questions error:", e)
+    return []
+  }
 }
 
 export async function createRound1Question(question: Omit<Question, 'id'>): Promise<Question | null> {
@@ -188,21 +193,26 @@ function challengeToDb(c: Omit<SQLChallenge, 'id'>) {
 }
 
 export async function fetchRound2Challenges(): Promise<SQLChallenge[]> {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from("round2_challenges")
-    .select("*")
-    .eq("is_active", true)
-    .order("difficulty", { ascending: true })
-    .order("id", { ascending: true })
+  try {
+    const supabase = await createClient()
+    
+    const { data, error } = await supabase
+      .from("round2_challenges")
+      .select("*")
+      .eq("is_active", true)
+      .order("difficulty", { ascending: true })
+      .order("id", { ascending: true })
 
-  if (error) {
-    console.error("Error fetching round2 challenges:", error)
+    if (error) {
+      console.error("Error fetching round2 challenges:", error)
+      return []
+    }
+
+    return (data || []).map(dbToChallenge)
+  } catch (e) {
+    console.error("fetchRound2Challenges error:", e)
     return []
   }
-
-  return (data || []).map(dbToChallenge)
 }
 
 export async function createRound2Challenge(challenge: Omit<SQLChallenge, 'id'>): Promise<SQLChallenge | null> {
@@ -333,36 +343,46 @@ function playerToRow(player: Player) {
 }
 
 export async function fetchAllPlayers(): Promise<Player[]> {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from("players")
-    .select("*")
-    .order("score", { ascending: false })
+  try {
+    const supabase = await createClient()
+    
+    const { data, error } = await supabase
+      .from("players")
+      .select("*")
+      .order("score", { ascending: false })
 
-  if (error) {
-    console.error("Error fetching players:", error)
+    if (error) {
+      console.error("Error fetching players:", error)
+      return []
+    }
+
+    return (data || []).map(rowToPlayer)
+  } catch (e) {
+    console.error("fetchAllPlayers error:", e)
     return []
   }
-
-  return (data || []).map(rowToPlayer)
 }
 
 export async function fetchPlayerById(id: string): Promise<Player | null> {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from("players")
-    .select("*")
-    .eq("id", id)
-    .single()
+  try {
+    const supabase = await createClient()
+    
+    const { data, error } = await supabase
+      .from("players")
+      .select("*")
+      .eq("id", id)
+      .single()
 
-  if (error) {
-    console.error("Error fetching player:", error)
+    if (error) {
+      console.error("Error fetching player:", error)
+      return null
+    }
+
+    return rowToPlayer(data)
+  } catch (e) {
+    console.error("fetchPlayerById error:", e)
     return null
   }
-
-  return rowToPlayer(data)
 }
 
 export async function createPlayer(
